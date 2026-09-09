@@ -19,7 +19,7 @@ export default function PatientProfilePage() {
           setProfile({
             name: res.data.user?.name || '',
             phone: res.data.user?.phone || '',
-            bloodGroup: res.data.user?.bloodGroup || 'O+',
+            bloodGroup: res.data.user?.bloodGroup || 'A+',
             allergies: res.data.user?.allergies?.join(', ') || '',
             emergencyName: res.data.user?.emergencyContact?.name || '',
             emergencyPhone: res.data.user?.emergencyContact?.phone || '',

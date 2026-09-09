@@ -89,7 +89,7 @@ export const AuthProvider = ({ children }) => {
   const quickDemoLogin = async (roleType) => {
     const credentials = {
       admin: { email: 'admin@smartcare.org', password: 'admin123' },
-      patient: { email: 'rahul.sharma@example.com', password: 'patient123' },
+      patient: { email: 'vivek.kokambe@example.com', password: 'patient123' },
       doctor: { email: 'dr.ananya.sen@smartcare.org', password: 'doctor123' },
       hospital: { email: 'apollo@smartcare.org', password: 'hospital123' },
     };

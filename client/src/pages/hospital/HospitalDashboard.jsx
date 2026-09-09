@@ -75,7 +75,7 @@ export default function HospitalDashboard() {
             <span>Hospital Administration Command</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-            Apollo Central Hospital, Delhi
+            Apollo Central Hospital, Mumbai
           </h1>
           <p className="text-xs sm:text-sm text-indigo-100 max-w-xl mt-1">
             Real-time outpatient footfall, bed occupancy status, and multi-department queue telemetry.

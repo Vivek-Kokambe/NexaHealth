@@ -38,7 +38,7 @@ export default function HospitalDirectoryPage() {
     fetchHospitals();
   };
 
-  const cities = ['All Cities', 'New Delhi', 'Gurgaon', 'Noida'];
+  const cities = ['All Cities', 'Mumbai', 'Navi Mumbai'];
   const departments = ['All Specialties', 'Cardiology', 'Neurology', 'Pediatrics', 'Orthopedics', 'Emergency Care'];
 
   return (

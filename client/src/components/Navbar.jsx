@@ -51,12 +51,6 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs">
-      {/* Prototype Compliance Banner */}
-      <div className="bg-gradient-to-r from-primary via-[#1c2980] to-teal-800 text-white text-[11px] py-1 px-4 text-center font-medium tracking-wide flex items-center justify-center space-x-2">
-        <span className="bg-amber-400 text-slate-950 font-bold px-1.5 py-0.2 rounded text-[10px] uppercase">Prototype</span>
-        <span>SmartCare Health Network • Student Project Prototype — Not a Certified Medical System</span>
-      </div>
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}

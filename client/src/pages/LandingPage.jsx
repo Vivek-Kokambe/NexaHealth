@@ -19,11 +19,12 @@ import SmartCardWidget from '../components/SmartCardWidget';
 
 export default function LandingPage() {
   const sampleCard = {
-    patientName: 'Rahul Sharma',
+    patientName: 'Vivek Kokambe',
     smartCardId: 'SCN-2026-104582',
-    dateOfBirth: '1992-05-14',
-    bloodGroup: 'O+',
-    emergencyContact: { phone: '+91 99102 33446' },
+    dateOfBirth: '2005-01-01',
+    bloodGroup: 'A+',
+    emergencyContact: { phone: '+91 99754 46879'},
+    phone: '+91 99754 12406',
     allergies: ['Penicillin', 'Peanuts'],
     cardStatus: 'active',
   };

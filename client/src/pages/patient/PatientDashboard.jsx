@@ -98,7 +98,7 @@ export default function PatientDashboard() {
             Welcome back, {user?.name}
           </h1>
           <p className="text-xs sm:text-sm text-blue-100 max-w-xl">
-            Smart Card ID: <span className="font-mono font-bold text-white bg-white/20 px-2 py-0.5 rounded">{cardData?.smartCardId || roleData?.smartCardId || 'SCN-2026-104582'}</span> • Blood Group: <span className="font-bold text-rose-300">{user?.bloodGroup || 'O+'}</span>
+            Smart Card ID: <span className="font-mono font-bold text-white bg-white/20 px-2 py-0.5 rounded">{cardData?.smartCardId || roleData?.smartCardId || 'SCN-2026-104582'}</span> • Blood Group: <span className="font-bold text-rose-300">{user?.bloodGroup || 'A+'}</span>
           </p>
         </div>
 

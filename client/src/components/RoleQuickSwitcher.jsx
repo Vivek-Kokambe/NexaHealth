@@ -12,7 +12,7 @@ export default function RoleQuickSwitcher() {
   const roles = [
     {
       id: 'patient',
-      label: 'Patient (Rahul)',
+      label: 'Patient (Vivek)',
       icon: <User className="w-3.5 h-3.5" />,
       color: 'bg-blue-600',
       path: '/patient/dashboard',

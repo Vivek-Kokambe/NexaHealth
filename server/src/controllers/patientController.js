@@ -107,8 +107,8 @@ exports.getSmartCard = async (req, res, next) => {
         success: true,
         smartCard: {
           patientName: user.name,
-          dateOfBirth: user.dateOfBirth || '1992-05-14',
-          bloodGroup: user.bloodGroup || 'O+',
+          dateOfBirth: user.dateOfBirth || '2005-01-01',
+          bloodGroup: user.bloodGroup || 'A+',
           gender: user.gender || 'male',
           smartCardId: patient.smartCardId,
           cardStatus: patient.cardStatus,

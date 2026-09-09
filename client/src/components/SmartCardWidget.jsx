@@ -7,10 +7,10 @@ export default function SmartCardWidget({ cardData, onReportLost }) {
   const [showQrModal, setShowQrModal] = useState(false);
 
   const smartCardId = cardData?.smartCardId || 'SCN-2026-104582';
-  const patientName = cardData?.patientName || cardData?.name || 'Rahul Sharma';
-  const bloodGroup = cardData?.bloodGroup || 'O+';
-  const dob = cardData?.dateOfBirth ? new Date(cardData.dateOfBirth).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '14 May 1992';
-  const emergencyPhone = cardData?.emergencyContact?.phone || '+91 99102 33446';
+  const patientName = cardData?.patientName || cardData?.name || 'Vivek Kokambe';
+  const bloodGroup = cardData?.bloodGroup || 'A+';
+  const dob = cardData?.dateOfBirth ? new Date(cardData.dateOfBirth).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '1 Jan 2005';
+  const emergencyPhone = cardData?.emergencyContact?.phone || 'Not provided';
   const allergies = cardData?.allergies && cardData.allergies.length > 0 ? cardData.allergies : ['Penicillin', 'Peanuts'];
   const cardStatus = cardData?.cardStatus || 'active';
   const qrValue = cardData?.qrCodeValue || `SMARTCARE://${smartCardId}/${patientName.toUpperCase().replace(/\s+/g, '-')}/${bloodGroup}`;

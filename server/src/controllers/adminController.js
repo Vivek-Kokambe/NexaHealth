@@ -13,8 +13,8 @@ const mockDb = require('../utils/mockStore');
 let supportTickets = [
   {
     _id: 'tkt_1',
-    userEmail: 'rahul.sharma@example.com',
-    userName: 'Rahul Sharma',
+    userEmail: 'vivek.kokambe@example.com',
+    userName: 'Vivek Kokambe',
     userRole: 'patient',
     category: 'Smart Card',
     subject: 'Request for secondary card issue',

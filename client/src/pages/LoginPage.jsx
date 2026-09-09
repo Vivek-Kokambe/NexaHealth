@@ -89,7 +89,7 @@ export default function LoginPage() {
               <User className="w-4 h-4 text-primary flex-shrink-0" />
               <div className="truncate">
                 <span className="block text-[10px] text-slate-500">Patient</span>
-                <span>Rahul Sharma</span>
+                <span>Vivek Kokambe</span>
               </div>
             </button>
 

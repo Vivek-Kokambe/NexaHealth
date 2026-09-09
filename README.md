@@ -49,15 +49,15 @@ SmartCare comes pre-seeded with realistic fictional demo accounts. In the UI, yo
 | Role | Name / Organization | Email | Password | Details |
 | :--- | :--- | :--- | :--- | :--- |
 | **Admin** | Dr. Rajesh Mehta | `admin@smartcare.org` | `admin123` | Platform Chief Superadmin |
-| **Patient 1** | Rahul Sharma | `rahul.sharma@example.com` | `patient123` | Smart Card: `SCN-2026-104582` (Blood: `O+`) |
+| **Patient 1** | Vivek Kokambe | `vivek.kokambe@example.com` | `patient123` | Smart Card: `SCN-2026-104582` (Blood: `A+`) |
 | **Patient 2** | Priya Patel | `priya.patel@example.com` | `patient123` | Smart Card: `SCN-2026-209841` (Blood: `B+`) |
 | **Patient 3** | Amit Verma | `amit.verma@example.com` | `patient123` | Smart Card: `SCN-2026-384712` (Blood: `A+`) |
 | **Doctor 1** | Dr. Ananya Sen | `dr.ananya.sen@smartcare.org` | `doctor123` | Cardiology • Apollo Central Hospital |
 | **Doctor 2** | Dr. Vikram Malhotra | `dr.vikram.malhotra@smartcare.org` | `doctor123` | Neurology • Max Super Specialty |
 | **Doctor 3** | Dr. Sneha Reddy | `dr.sneha.reddy@smartcare.org` | `doctor123` | Pediatrics • Fortis Memorial |
-| **Hospital 1** | Apollo Central Hospital | `apollo@smartcare.org` | `hospital123` | Sarita Vihar, New Delhi |
-| **Hospital 2** | Max Super Specialty Hospital | `max@smartcare.org` | `hospital123` | Sushant Lok, Gurgaon |
-| **Hospital 3** | Fortis Memorial Research Inst. | `fortis@smartcare.org` | `hospital123` | Sector 62, Noida |
+| **Hospital 1** | Apollo Central Hospital | `apollo@smartcare.org` | `hospital123` | Andheri East, Mumbai |
+| **Hospital 2** | Max Super Specialty Hospital | `max@smartcare.org` | `hospital123` | Sector 17, Vashi, Navi Mumbai |
+| **Hospital 3** | Fortis Memorial Research Inst. | `fortis@smartcare.org` | `hospital123` | Mulund West, Mumbai |
 
 ---
 

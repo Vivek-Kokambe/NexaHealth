@@ -186,7 +186,7 @@ export default function RegisterPage() {
                 type="text"
                 name="name"
                 required
-                placeholder={role === 'hospital' ? 'Max Super Specialty' : 'e.g. Rahul Sharma'}
+                    placeholder={role === 'hospital' ? 'Max Super Specialty' : 'e.g. Your full name'}
                 value={formData.name}
                 onChange={handleChange}
                 className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20"
@@ -306,7 +306,7 @@ export default function RegisterPage() {
                   <input
                     type="tel"
                     name="emergencyPhone"
-                    placeholder="+91 99102 33446"
+                    placeholder="+91 98765 43210"
                     value={formData.emergencyPhone}
                     onChange={handleChange}
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
