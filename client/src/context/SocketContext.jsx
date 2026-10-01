@@ -8,6 +8,8 @@ export const SocketProvider = ({ children }) => {
   const [lastQueueEvent, setLastQueueEvent] = useState(null);
 
   useEffect(() => {
+    if (import.meta.env.PROD) return;
+
     // Initialize socket connection
     const newSocket = io(window.location.origin, {
       transports: ['websocket', 'polling'],

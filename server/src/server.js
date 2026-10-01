@@ -22,31 +22,26 @@ const notificationRoutes = require('./routes/notificationRoutes');
 const app = express();
 const server = http.createServer(app);
 
-// Initialize Socket.IO
-const io = new Server(server, {
-  cors: {
-    origin: process.env.CLIENT_URL || '*',
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  },
-});
-
-global.io = io;
-
-io.on('connection', (socket) => {
-  // console.log(`[Socket.IO] Client connected: ${socket.id}`);
-
-  socket.on('joinRoom', (room) => {
-    socket.join(room);
+if (!process.env.VERCEL) {
+  const io = new Server(server, {
+    cors: {
+      origin: process.env.CLIENT_URL || '*',
+      methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    },
   });
 
-  socket.on('leaveRoom', (room) => {
-    socket.leave(room);
-  });
+  global.io = io;
 
-  socket.on('disconnect', () => {
-    // console.log(`[Socket.IO] Client disconnected: ${socket.id}`);
+  io.on('connection', (socket) => {
+    socket.on('joinRoom', (room) => {
+      socket.join(room);
+    });
+
+    socket.on('leaveRoom', (room) => {
+      socket.leave(room);
+    });
   });
-});
+}
 
 // Security & Utility Middleware
 app.use(helmet({ crossOriginResourcePolicy: false }));
@@ -57,6 +52,15 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 if (process.env.NODE_ENV !== 'production') {
   app.use(morgan('dev'));
 }
+
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
 
 // Rate Limiting for Auth
 const authLimiter = rateLimit({
@@ -91,11 +95,15 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
-connectDB().then(() => {
-  server.listen(PORT, () => {
-    console.log(`=====================================================`);
-    console.log(`  SmartCare Health Network Server running on port ${PORT}`);
-    console.log(`  Connected Care. Smarter Health. Prototype Active.`);
-    console.log(`=====================================================`);
+if (!process.env.VERCEL) {
+  connectDB().then(() => {
+    server.listen(PORT, () => {
+      console.log(`=====================================================`);
+      console.log(`  SmartCare Health Network Server running on port ${PORT}`);
+      console.log(`  Connected Care. Smarter Health. Prototype Active.`);
+      console.log(`=====================================================`);
+    });
   });
-});
+}
+
+module.exports = app;

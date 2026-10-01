@@ -114,6 +114,24 @@ npm run dev
 
 ---
 
+## ☁️ Deploy to Vercel
+
+The root `vercel.json` configures the `client` and `server` directories as separate services and routes `/api/*` requests to Express. Import the repository into Vercel with the repository root (`./`) as the project root; do not create separate Vercel projects for the two folders.
+
+Before deploying, create a MongoDB Atlas database and add the following environment variable in Vercel's project settings for every deployment environment:
+
+| Variable | Value |
+| :--- | :--- |
+| `MONGODB_URI` | Your MongoDB Atlas connection string |
+
+Allow Vercel's outbound connections in the Atlas network access settings. Do not set `USE_MOCK_DB=true`: Vercel functions are temporary and in-memory data is not persistent. The API returns an error if the database is not configured or reachable.
+
+To load the demo accounts into a new, empty Atlas database, set the same `MONGODB_URI` in `server/.env` and run `npm run seed` from `server` before deploying. The seed command deletes existing records first; do not run it against a database containing data you need to keep.
+
+The Express API deploys as serverless functions. Socket.IO's persistent live queue updates remain available for local development but are disabled on Vercel, whose serverless functions do not support this persistent WebSocket server.
+
+---
+
 ## 📡 REST API Documentation
 
 ### Authentication
