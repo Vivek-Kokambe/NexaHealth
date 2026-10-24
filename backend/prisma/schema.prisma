@@ -1,0 +1,220 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ================================
+// USER
+// ================================
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  phone        String?  @unique
+  passwordHash String
+  role         UserRole
+  status       UserStatus @default(PENDING)
+
+  patient      Patient?
+  doctor       Doctor?
+  staff        Staff?
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+// ================================
+// PATIENT
+// ================================
+
+model Patient {
+  id                    String   @id @default(uuid())
+  userId                String   @unique
+  smartCardId           String   @unique
+
+  firstName             String
+  lastName              String
+  dateOfBirth           DateTime?
+  gender                Gender?
+  bloodGroup            BloodGroup?
+  allergies             String[] @default([])
+  emergencyContactName  String?
+  emergencyContactPhone String?
+  rfidUid               String?  @unique
+  rfidPairingExpiresAt  DateTime?
+
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rfidScanEvents        RfidScanEvent[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model RfidScanEvent {
+  id        String       @id @default(uuid())
+  patientId String
+  type      RfidScanType
+  scannedAt DateTime     @default(now())
+
+  patient   Patient      @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@index([patientId, scannedAt])
+}
+
+// ================================
+// DOCTOR
+// ================================
+
+model Doctor {
+  id                 String             @id @default(uuid())
+  userId             String             @unique
+
+  firstName          String
+  lastName           String
+  specialization     String
+  licenseNumber      String             @unique
+  verificationStatus VerificationStatus @default(PENDING)
+
+  hospitalId         String
+  departmentId       String
+
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  hospital           Hospital           @relation(fields: [hospitalId], references: [id])
+  department         Department         @relation(fields: [departmentId], references: [id])
+
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+}
+
+// ================================
+// STAFF
+// ================================
+
+model Staff {
+  id         String    @id @default(uuid())
+  userId     String    @unique
+
+  firstName  String
+  lastName   String
+  staffRole  StaffRole
+
+  hospitalId String
+
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  hospital   Hospital  @relation(fields: [hospitalId], references: [id])
+
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}
+
+// ================================
+// ENUMS
+// ================================
+
+enum UserRole {
+  PATIENT
+  DOCTOR
+  STAFF
+}
+
+enum UserStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+}
+
+enum StaffRole {
+  RECEPTIONIST
+  HOSPITAL_ADMIN
+}
+
+enum VerificationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum BloodGroup {
+  A_POSITIVE
+  A_NEGATIVE
+  B_POSITIVE
+  B_NEGATIVE
+  AB_POSITIVE
+  AB_NEGATIVE
+  O_POSITIVE
+  O_NEGATIVE
+}
+
+enum RfidScanType {
+  ATTACHED
+  DETECTED
+}
+
+
+// ================================
+// HOSPITAL
+// ================================
+
+model Hospital {
+  id                 String             @id @default(uuid())
+  name               String
+  registrationNumber String             @unique
+  email              String             @unique
+  phone              String
+
+  address            String
+  city               String
+  state              String
+  pincode            String
+
+  verificationStatus VerificationStatus @default(PENDING)
+
+  departments        Department[]
+  doctors            Doctor[]
+  staff              Staff[]
+
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+}
+
+model Department {
+  id          String   @id @default(uuid())
+  hospitalId  String
+
+  name        String
+  description String?
+
+  hospital    Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+
+  doctors     Doctor[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+
+
+model EmailVerification {
+  id         String   @id @default(uuid())
+  email      String   @unique
+  otpHash    String
+  expiresAt  DateTime
+  attempts   Int      @default(0)
+  verifiedAt DateTime?
+
+  createdAt  DateTime @default(now())
+}
