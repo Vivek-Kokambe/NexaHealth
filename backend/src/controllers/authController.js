@@ -11,11 +11,13 @@ const formatBloodGroup = (bloodGroup) => bloodGroup
 
 const serializeUser = (user) => {
   const patient = user.patient;
+  const doctor = user.doctor;
   const name = patient ? `${patient.firstName} ${patient.lastName}` : null;
+  const doctorName = doctor ? `${doctor.firstName} ${doctor.lastName}` : null;
 
   return {
     id: user.id,
-    name,
+    name: name || doctorName,
     email: user.email,
     phone: user.phone,
     role: user.role,
@@ -30,6 +32,12 @@ const serializeUser = (user) => {
           name: patient.emergencyContactName,
           phone: patient.emergencyContactPhone
         }
+      }
+    }),
+    ...(doctor && {
+      doctor: {
+        ...doctor,
+        verificationStatus: doctor.verificationStatus.toLowerCase()
       }
     })
   };
@@ -74,7 +82,7 @@ const getCurrentUser = async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.user.userId },
-      include: { patient: true }
+      include: { patient: true, doctor: true }
     });
 
     if (!user) return res.status(404).json({ message: "User not found" });
@@ -89,7 +97,7 @@ const getPatientSmartCard = async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.user.userId },
-      include: { patient: true }
+      include: { patient: true, doctor: true }
     });
 
     if (!user?.patient) {
@@ -199,6 +207,14 @@ const verifyRegistrationOtp = async (req, res) => {
       allergies,
       emergencyContactName,
       emergencyContactPhone
+      ,specialization
+      ,qualifications
+      ,licenseNumber
+      ,consultationFee
+      ,clinicalExperience
+      ,doctorGender
+      ,affiliationCode
+      ,credentialDocument
     } = req.body;
 
     if (!email || !otp || !password || !role) {
@@ -207,16 +223,26 @@ const verifyRegistrationOtp = async (req, res) => {
       });
     }
 
-    if (role !== "PATIENT") {
+    if (!["PATIENT", "DOCTOR"].includes(role)) {
       return res.status(400).json({
-        message: "Email OTP registration is currently available for patients only"
+        message: "Email OTP registration is currently available for patients and doctors"
       });
     }
 
     if (!firstName?.trim() || !lastName?.trim()) {
       return res.status(400).json({
-        message: "Patient first and last name are required"
+        message: `${role === "DOCTOR" ? "Doctor" : "Patient"} first and last name are required`
       });
+    }
+
+    if (role === "DOCTOR" && (!specialization?.trim() || !qualifications?.trim() || !licenseNumber?.trim() || !credentialDocument)) {
+      return res.status(400).json({
+        message: "Doctor specialization, qualifications, MCI license number and credential document are required"
+      });
+    }
+
+    if (role === "DOCTOR" && doctorGender && !["MALE", "FEMALE", "OTHER"].includes(doctorGender.toUpperCase())) {
+      return res.status(400).json({ message: "Invalid doctor gender" });
     }
 
     const validGenders = ["MALE", "FEMALE", "OTHER"];
@@ -326,6 +352,47 @@ const verifyRegistrationOtp = async (req, res) => {
 
     const passwordHash = await bcrypt.hash(password, 10);
 
+    if (role === "DOCTOR") {
+      const doctorUser = await prisma.$transaction(async (transaction) => {
+        const createdUser = await transaction.user.create({
+          data: {
+            email: normalizedEmail,
+            phone: normalizedPhone,
+            passwordHash,
+            role: "DOCTOR",
+            status: "PENDING",
+            doctor: {
+              create: {
+                firstName: firstName.trim(),
+                lastName: lastName.trim(),
+                specialization: specialization.trim(),
+                qualifications: qualifications.trim(),
+                licenseNumber: licenseNumber.trim(),
+                consultationFee: consultationFee ? Number(consultationFee) : null,
+                clinicalExperience: clinicalExperience ? Number(clinicalExperience) : null,
+                gender: doctorGender ? doctorGender.toUpperCase() : null,
+                affiliationCode: affiliationCode?.trim() || null,
+                credentialDocument: credentialDocument || null
+              }
+            }
+          },
+          include: { doctor: true }
+        });
+
+        await transaction.emailVerification.update({
+          where: { email: normalizedEmail },
+          data: { verifiedAt: new Date() }
+        });
+
+        return createdUser;
+      });
+
+      return res.status(201).json({
+        message: "Email verified. Doctor registration is pending admin approval.",
+        user: serializeUser(doctorUser)
+      });
+    }
+
     const user = await prisma.$transaction(async (transaction) => {
       const createdUser = await transaction.user.create({
         data: {
@@ -388,7 +455,7 @@ const loginUser = async (req, res) => {
     const normalizedEmail = email.trim().toLowerCase();
     const user = await prisma.user.findUnique({
       where: { email: normalizedEmail },
-      include: { patient: true }
+      include: { patient: true, doctor: true }
     });
 
     if (!user) {

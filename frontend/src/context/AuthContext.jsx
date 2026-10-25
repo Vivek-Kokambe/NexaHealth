@@ -71,7 +71,7 @@ export const AuthProvider = ({ children }) => {
   const verifyRegistrationOtp = async (formData) => {
     const res = await api.post('/auth/register/verify', {
       ...formData,
-      role: 'PATIENT',
+      role: formData.role || 'PATIENT',
     });
     return {
       ...res.data,

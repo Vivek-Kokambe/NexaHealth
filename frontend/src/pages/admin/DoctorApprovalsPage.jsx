@@ -9,7 +9,7 @@ export default function DoctorApprovalsPage() {
   const fetchDoctors = async () => {
     try {
       setLoading(true);
-      const res = await api.get('/doctors');
+      const res = await api.get('/admin/doctors');
       if (res.data.success) {
         setDoctors(res.data.doctors || []);
       }

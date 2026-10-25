@@ -13,6 +13,7 @@ export default function RegisterPage() {
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState('');
   const [successData, setSuccessData] = useState(null);
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -32,6 +33,10 @@ export default function RegisterPage() {
     qualifications: 'MBBS, MD',
     licenseNumber: '',
     consultationFee: 700,
+    clinicalExperience: 5,
+    doctorGender: 'MALE',
+    affiliationCode: '',
+    credentialDocument: '',
     // Hospital
     registrationNumber: '',
     city: 'New Delhi',
@@ -47,8 +52,13 @@ export default function RegisterPage() {
     e.preventDefault();
     setError('');
 
-    if (role !== 'patient') {
-      setError('Patient OTP registration is connected. Doctor and hospital registration will be available when their v1 profiles are supported.');
+    if (role === 'hospital') {
+      setError('Hospital registration will be available when hospital onboarding is enabled.');
+      return;
+    }
+
+    if (role === 'doctor' && !termsAccepted) {
+      setError('Please confirm that your credentials and license details are accurate.');
       return;
     }
 
@@ -63,6 +73,7 @@ export default function RegisterPage() {
 
       const [firstName, ...lastNameParts] = formData.name.trim().split(/\s+/);
       const res = await verifyRegistrationOtp({
+        role: role.toUpperCase(),
         email: formData.email,
         otp,
         password: formData.password,
@@ -75,6 +86,14 @@ export default function RegisterPage() {
         allergies: formData.allergies ? formData.allergies.split(',').map((allergy) => allergy.trim()).filter(Boolean) : [],
         emergencyContactName: formData.emergencyName,
         emergencyContactPhone: formData.emergencyPhone,
+        specialization: formData.specialization,
+        qualifications: formData.qualifications,
+        licenseNumber: formData.licenseNumber,
+        consultationFee: formData.consultationFee,
+        clinicalExperience: formData.clinicalExperience,
+        doctorGender: formData.doctorGender,
+        affiliationCode: formData.affiliationCode,
+        credentialDocument: formData.credentialDocument,
       });
       setSuccessData(res);
     } catch (err) {
@@ -96,7 +115,17 @@ export default function RegisterPage() {
           <p className="text-xs text-slate-600">
             Welcome to SmartCare Health Network, <strong>{successData.user.name}</strong>.
           </p>
-          <p className="text-xs text-slate-600">Your email is verified and your patient account is ready. Sign in to continue.</p>
+          <p className="text-xs text-slate-600">
+            {successData.user.role === 'doctor'
+              ? 'Your email is verified. Your profile and license document are waiting for administrator approval.'
+              : 'Your email is verified and your patient account is ready. Sign in to continue.'}
+          </p>
+
+          {successData.user.role === 'doctor' && (
+            <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-left text-xs text-amber-800">
+              <strong>Admin verification pending.</strong> You can sign in after the administrator approves your credentials.
+            </div>
+          )}
 
           {successData.user.smartCardId && (
             <div className="p-4 rounded-2xl bg-blue-50 border border-blue-200 text-left space-y-2">
@@ -325,9 +354,9 @@ export default function RegisterPage() {
           {/* Role specific: Doctor */}
           {role === 'doctor' && (
             <>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="font-semibold text-slate-700 block mb-1">Specialization</label>
+                  <label className="font-semibold text-slate-700 block mb-1">Specialization <span className="text-rose-500">*</span></label>
                   <select
                     name="specialization"
                     value={formData.specialization}
@@ -340,7 +369,7 @@ export default function RegisterPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="font-semibold text-slate-700 block mb-1">Consultation Fee (₹)</label>
+                  <label className="font-semibold text-slate-700 block mb-1">Consultation Fee (₹) <span className="text-rose-500">*</span></label>
                   <input
                     type="number"
                     name="consultationFee"
@@ -351,9 +380,9 @@ export default function RegisterPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="font-semibold text-slate-700 block mb-1">Qualifications</label>
+                  <label className="font-semibold text-slate-700 block mb-1">Qualifications <span className="text-rose-500">*</span></label>
                   <input
                     type="text"
                     name="qualifications"
@@ -364,7 +393,7 @@ export default function RegisterPage() {
                   />
                 </div>
                 <div>
-                  <label className="font-semibold text-slate-700 block mb-1">MCI License Number</label>
+                  <label className="font-semibold text-slate-700 block mb-1">MCI License Number <span className="text-rose-500">*</span></label>
                   <input
                     type="text"
                     name="licenseNumber"
@@ -375,6 +404,52 @@ export default function RegisterPage() {
                   />
                 </div>
               </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="font-semibold text-slate-700 block mb-1">Clinical Experience (yrs)</label>
+                  <input type="number" min="0" name="clinicalExperience" value={formData.clinicalExperience} onChange={handleChange} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl" />
+                </div>
+                <div>
+                  <label className="font-semibold text-slate-700 block mb-1">Gender</label>
+                  <select name="doctorGender" value={formData.doctorGender} onChange={handleChange} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl">
+                    <option value="MALE">Male</option>
+                    <option value="FEMALE">Female</option>
+                    <option value="OTHER">Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="font-semibold text-slate-700 block mb-1">Affiliation Code <span className="text-slate-400">(Optional)</span></label>
+                  <input type="text" name="affiliationCode" placeholder="NX-HOSP-9481" value={formData.affiliationCode} onChange={handleChange} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl" />
+                </div>
+              </div>
+
+              <div>
+                <label className="font-semibold text-slate-700 block mb-1">Medical License / Registration Certificate <span className="text-slate-400">(PDF or JPEG, max 5MB)</span></label>
+                <input
+                  type="file"
+                  accept="application/pdf,image/jpeg,image/png"
+                  required
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    if (file.size > 5 * 1024 * 1024) {
+                      setError('The credential document must be 5MB or smaller.');
+                      e.target.value = '';
+                      return;
+                    }
+                    const reader = new FileReader();
+                    reader.onload = () => setFormData((current) => ({ ...current, credentialDocument: reader.result }));
+                    reader.readAsDataURL(file);
+                  }}
+                  className="w-full px-3 py-2.5 bg-slate-50 border border-dashed border-slate-300 rounded-xl text-xs"
+                />
+              </div>
+
+              <label className="flex items-start gap-2 text-[11px] text-slate-600">
+                <input type="checkbox" checked={termsAccepted} onChange={(e) => setTermsAccepted(e.target.checked)} className="mt-0.5 rounded border-slate-300 text-primary focus:ring-primary" />
+                <span>I certify that the provided medical license, qualifications, and personal credentials are valid and comply with National Medical Commission guidelines.</span>
+              </label>
             </>
           )}
 

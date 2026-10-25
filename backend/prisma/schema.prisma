@@ -80,15 +80,21 @@ model Doctor {
   firstName          String
   lastName           String
   specialization     String
+  qualifications     String?
   licenseNumber      String             @unique
+  consultationFee    Int?
+  clinicalExperience Int?
+  gender             Gender?
+  affiliationCode    String?
+  credentialDocument String?
   verificationStatus VerificationStatus @default(PENDING)
 
-  hospitalId         String
-  departmentId       String
+  hospitalId         String?
+  departmentId       String?
 
   user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  hospital           Hospital           @relation(fields: [hospitalId], references: [id])
-  department         Department         @relation(fields: [departmentId], references: [id])
+  hospital           Hospital?          @relation(fields: [hospitalId], references: [id])
+  department         Department?        @relation(fields: [departmentId], references: [id])
 
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
@@ -123,6 +129,7 @@ enum UserRole {
   PATIENT
   DOCTOR
   STAFF
+  ADMIN
 }
 
 enum UserStatus {
