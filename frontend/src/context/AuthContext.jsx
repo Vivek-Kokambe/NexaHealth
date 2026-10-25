@@ -10,7 +10,7 @@ const normalizeUser = (user) => {
     ...user,
     id: user.id || user.userId,
     role: user.role?.toLowerCase(),
-    name: user.name || (patient ? `${patient.firstName} ${patient.lastName}` : ''),
+    name: user.name || (patient ? `${patient.firstName} ${patient.lastName}` : user.hospital?.name || user.email || ''),
     bloodGroup: user.bloodGroup || patient?.bloodGroup || null,
     smartCardId: user.smartCardId || patient?.smartCardId || null,
   };
@@ -91,11 +91,14 @@ export const AuthProvider = ({ children }) => {
   // Quick one-click login helper for all 4 roles
   const quickDemoLogin = async (roleType) => {
     const credentials = {
-      admin: { email: 'admin@smartcare.org', password: 'admin123' },
       patient: { email: 'vivek.kokambe@example.com', password: 'patient123' },
       doctor: { email: 'dr.ananya.sen@smartcare.org', password: 'doctor123' },
       hospital: { email: 'apollo@smartcare.org', password: 'hospital123' },
     };
+
+    if (roleType === 'admin') {
+      throw new Error('Admin sign-in requires the configured administrator account.');
+    }
 
     const target = credentials[roleType];
     if (target) {

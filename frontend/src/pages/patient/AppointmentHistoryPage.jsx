@@ -56,7 +56,7 @@ export default function AppointmentHistoryPage() {
   };
 
   const filtered = appointments.filter(a => {
-    if (filter === 'upcoming') return ['confirmed', 'waiting', 'checked_in', 'in_consultation'].includes(a.status);
+    if (filter === 'upcoming') return ['requested', 'confirmed', 'waiting', 'checked_in', 'in_consultation'].includes(a.status);
     if (filter === 'past') return ['completed', 'cancelled', 'no_show'].includes(a.status);
     return true;
   });
@@ -71,6 +71,8 @@ export default function AppointmentHistoryPage() {
         return <span className="bg-blue-100 text-blue-800 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase">Checked In</span>;
       case 'confirmed':
         return <span className="bg-slate-100 text-slate-800 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase">Confirmed</span>;
+      case 'requested':
+        return <span className="bg-amber-100 text-amber-800 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase">Awaiting Hospital Confirmation</span>;
       case 'completed':
         return <span className="bg-emerald-50 text-emerald-700 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase">Completed</span>;
       case 'cancelled':

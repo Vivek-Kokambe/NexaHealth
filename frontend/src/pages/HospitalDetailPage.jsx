@@ -1,16 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Building2, MapPin, Phone, Mail, Star, Clock, CheckCircle2, Stethoscope, ArrowRight } from 'lucide-react';
-import { getDemoHospitalDetails } from '../services/directoryDemoData';
+import { MapPin, CheckCircle2, ArrowRight } from 'lucide-react';
+import api from '../services/api';
 
 export default function HospitalDetailPage() {
   const { id } = useParams();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    setData(getDemoHospitalDetails(id));
-    setLoading(false);
+    const fetchHospital = async () => {
+      try {
+        setLoading(true);
+        setError('');
+        const response = await api.get(`/hospitals/${id}`);
+        setData(response.data);
+      } catch (requestError) {
+        setData(null);
+        setError(requestError.response?.data?.message || requestError.message || 'Unable to load hospital details.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchHospital();
   }, [id]);
 
   if (loading) {
@@ -18,7 +32,7 @@ export default function HospitalDetailPage() {
   }
 
   if (!data?.hospital) {
-    return <div className="p-12 text-center text-slate-600">Hospital not found.</div>;
+    return <div role="alert" className="p-12 text-center text-slate-600">{error || 'Hospital not found.'}</div>;
   }
 
   const { hospital, doctors } = data;
@@ -37,9 +51,9 @@ export default function HospitalDetailPage() {
           
           <div className="absolute bottom-6 left-6 right-6 text-white flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div className="space-y-2">
-              <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-blue-600/80 backdrop-blur-md text-xs font-semibold">
-                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                <span>{hospital.rating || 4.9} Verified Rating</span>
+              <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-emerald-600/80 backdrop-blur-md text-xs font-semibold">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span>Approved Network Hospital</span>
               </div>
               <h1 className="text-2xl sm:text-4xl font-extrabold">{hospital.name}</h1>
               <p className="text-xs sm:text-sm text-slate-300 flex items-center space-x-2">
@@ -62,19 +76,19 @@ export default function HospitalDetailPage() {
         <div className="grid grid-cols-2 sm:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-slate-100 p-6 bg-white text-center">
           <div>
             <span className="text-slate-400 text-xs uppercase font-medium">Total Bed Capacity</span>
-            <p className="text-xl font-extrabold text-slate-900 mt-1">{hospital.totalBeds || 350}+</p>
+            <p className="text-xl font-extrabold text-slate-900 mt-1">{hospital.totalBeds ?? 'Not listed'}</p>
           </div>
           <div>
-            <span className="text-slate-400 text-xs uppercase font-medium">ICU Beds Available</span>
-            <p className="text-xl font-extrabold text-emerald-600 mt-1">{hospital.icuBedsAvailable || 18} Active</p>
+            <span className="text-slate-400 text-xs uppercase font-medium">ICU Bed Capacity</span>
+            <p className="text-xl font-extrabold text-emerald-600 mt-1">{hospital.icuBedsAvailable ?? 'Not listed'}</p>
           </div>
           <div>
             <span className="text-slate-400 text-xs uppercase font-medium">Operating Hours</span>
-            <p className="text-xs font-bold text-slate-800 mt-1 truncate px-2">{hospital.operatingHours || '24/7'}</p>
+            <p className="text-xs font-bold text-slate-800 mt-1 truncate px-2">{hospital.operatingHours || 'Contact hospital'}</p>
           </div>
           <div>
             <span className="text-slate-400 text-xs uppercase font-medium">Emergency Desk</span>
-            <p className="text-xs font-bold text-primary mt-1">{hospital.phone || '+91 11 2692 5858'}</p>
+            <p className="text-xs font-bold text-primary mt-1">{hospital.phone || 'Contact not listed'}</p>
           </div>
         </div>
       </div>
@@ -137,7 +151,10 @@ export default function HospitalDetailPage() {
                 ))}
               </div>
             ) : (
-              <p className="text-xs text-slate-500">No doctors currently affiliated with this department.</p>
+              <p className="text-xs leading-5 text-slate-500">
+                No doctors are listed at this hospital yet. You can still request an appointment by
+                selecting a department; the hospital will confirm availability.
+              </p>
             )}
           </div>
         </div>

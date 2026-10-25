@@ -1,232 +1,250 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../context/AuthContext';
-import api from '../../services/api';
-import {
-  Building2,
-  Users,
-  Clock,
-  CheckCircle2,
-  Stethoscope,
-  Activity,
-  Bed,
-  Search,
-  ArrowRight
-} from 'lucide-react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  ResponsiveContainer,
-  BarChart,
+  AlertCircle,
+  ArrowRight,
+  BedDouble,
+  Building2,
+  CalendarDays,
+  Clock3,
+  Info,
+  RefreshCw,
+  Stethoscope,
+} from 'lucide-react';
+import {
   Bar,
+  BarChart,
+  Cell,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  Tooltip,
-  PieChart,
-  Pie,
-  Cell
 } from 'recharts';
+import api from '../../services/api';
+
+const statusColors = {
+  REQUESTED: '#F59E0B',
+  CONFIRMED: '#10B981',
+  CANCELLED: '#94A3B8',
+};
+
+const statusLabel = (status) => ({
+  requested: 'Awaiting confirmation',
+  confirmed: 'Confirmed',
+  cancelled: 'Cancelled',
+}[status] || status);
 
 export default function HospitalDashboard() {
-  const { user } = useAuth();
-  const [stats, setStats] = useState(null);
-  const [appointments, setAppointments] = useState([]);
+  const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState('');
 
-  useEffect(() => {
-    const fetchHospitalData = async () => {
-      try {
-        setLoading(true);
-        const hospId = 'hosp_1'; // default demo hospital
-        const [statRes, aptRes] = await Promise.all([
-          api.get(`/hospitals/${hospId}/analytics`),
-          api.get(`/hospitals/${hospId}/appointments`),
-        ]);
-
-        if (statRes.data.success) setStats(statRes.data.stats);
-        if (aptRes.data.success) setAppointments(aptRes.data.appointments || []);
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchHospitalData();
+  const fetchAnalytics = useCallback(async (background = false) => {
+    try {
+      if (background) setRefreshing(true);
+      else setLoading(true);
+      setError('');
+      const response = await api.get('/hospitals/me/analytics');
+      setData(response.data);
+    } catch (requestError) {
+      setError(requestError.response?.data?.message || requestError.message || 'Unable to load live hospital analytics.');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
   }, []);
 
-  const pieData = [
-    { name: 'Completed', value: stats?.completed || 1, color: '#10B981' },
-    { name: 'Waiting in Queue', value: stats?.waiting || 2, color: '#F59E0B' },
-    { name: 'In Chamber', value: stats?.inConsultation || 1, color: '#1F2C8F' },
-  ];
+  useEffect(() => {
+    fetchAnalytics();
+    const refreshTimer = window.setInterval(() => fetchAnalytics(true), 15000);
+    return () => window.clearInterval(refreshTimer);
+  }, [fetchAnalytics]);
 
-  const deptData = stats?.departmentBreakdown || [
-    { name: 'Cardiology', appointments: 12, waitTimeAvg: 18 },
-    { name: 'Neurology', appointments: 8, waitTimeAvg: 22 },
-    { name: 'Pediatrics', appointments: 15, waitTimeAvg: 12 },
-    { name: 'Orthopedics', appointments: 6, waitTimeAvg: 15 },
-  ];
+  if (loading) {
+    return <div className="p-12 text-center text-sm text-slate-500">Loading hospital analytics...</div>;
+  }
+
+  const hospital = data?.hospital;
+  const analytics = data?.analytics;
+  const chartStatuses = [
+    { name: 'Awaiting confirmation', value: analytics?.requested || 0, color: statusColors.REQUESTED },
+    { name: 'Confirmed', value: analytics?.confirmed || 0, color: statusColors.CONFIRMED },
+    { name: 'Cancelled', value: analytics?.cancelled || 0, color: statusColors.CANCELLED },
+  ].filter((item) => item.value > 0);
+  const departmentData = analytics?.departments || [];
 
   return (
-    <div className="space-y-8">
-      {/* Hospital Banner */}
-      <div className="bg-gradient-to-r from-indigo-900 via-primary to-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6">
+    <div className="space-y-6">
+      <header className="flex flex-col gap-5 rounded-3xl bg-gradient-to-r from-indigo-900 via-primary to-slate-900 p-6 text-white shadow-xl sm:flex-row sm:items-center sm:justify-between sm:p-8">
         <div>
-          <div className="inline-flex items-center space-x-1.5 px-3 py-0.5 rounded-full bg-white/10 text-indigo-200 text-xs font-semibold mb-2">
-            <Building2 className="w-3.5 h-3.5" />
-            <span>Hospital Administration Command</span>
+          <div className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-indigo-100">
+            <Building2 className="h-3.5 w-3.5" /> Hospital administration
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-            Apollo Central Hospital, Mumbai
+          <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
+            {hospital?.name || 'Hospital dashboard'}{hospital?.city ? `, ${hospital.city}` : ''}
           </h1>
-          <p className="text-xs sm:text-sm text-indigo-100 max-w-xl mt-1">
-            Real-time outpatient footfall, bed occupancy status, and multi-department queue telemetry.
+          <p className="mt-1 max-w-xl text-sm text-indigo-100">
+            Live appointment requests and department activity for {analytics?.date || 'today'}.
           </p>
         </div>
-
-        <div className="flex items-center gap-2">
-          <Link
-            to="/hospital/appointments"
-            className="px-4 py-2.5 bg-white text-indigo-900 font-bold text-xs rounded-xl shadow hover:bg-slate-50 transition"
-          >
-            Live OPD Queue
-          </Link>
-          <Link
-            to="/hospital/doctors"
-            className="px-4 py-2.5 bg-white/10 text-white font-semibold text-xs rounded-xl border border-white/20 hover:bg-white/20 transition"
-          >
-            Doctors Roster
+        <div className="flex flex-wrap items-center gap-2">
+          <button type="button" onClick={() => fetchAnalytics(true)} disabled={refreshing} className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 text-xs font-semibold text-white hover:bg-white/20 disabled:opacity-60">
+            <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} /> Refresh
+          </button>
+          <Link to="/hospital/appointments" className="rounded-xl bg-white px-4 py-2.5 text-xs font-bold text-indigo-900 shadow transition hover:bg-slate-50">
+            Appointment requests
           </Link>
         </div>
-      </div>
+      </header>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-2xl shadow-card border border-slate-100">
-          <span className="text-slate-400 text-xs uppercase font-medium">Total Appointments</span>
-          <div className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">{stats?.totalToday || 5}</div>
-          <span className="text-[11px] text-slate-500">Today's scheduled OPD</span>
+      {error && (
+        <div role="alert" className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" /> <span>{error}</span>
         </div>
+      )}
 
-        <div className="bg-white p-5 rounded-2xl shadow-card border border-slate-100">
-          <span className="text-slate-400 text-xs uppercase font-medium">Waiting Patients</span>
-          <div className="text-2xl sm:text-3xl font-black text-amber-600 mt-1">{stats?.waiting || 2}</div>
-          <span className="text-[11px] text-slate-500">Checked-in waiting lounge</span>
-        </div>
-
-        <div className="bg-white p-5 rounded-2xl shadow-card border border-slate-100">
-          <span className="text-slate-400 text-xs uppercase font-medium">Active Specialists</span>
-          <div className="text-2xl sm:text-3xl font-black text-primary mt-1">{stats?.activeDoctors || 3}</div>
-          <span className="text-[11px] text-slate-500">On duty right now</span>
-        </div>
-
-        <div className="bg-white p-5 rounded-2xl shadow-card border border-slate-100">
-          <span className="text-slate-400 text-xs uppercase font-medium">Bed Occupancy</span>
-          <div className="text-2xl sm:text-3xl font-black text-emerald-600 mt-1">{stats?.bedOccupancyRate || 84}%</div>
-          <span className="text-[11px] text-slate-500">28 ICU Beds Free</span>
-        </div>
-      </div>
-
-      {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Department Volume Bar Chart */}
-        <div className="lg:col-span-8 bg-white p-6 rounded-2xl shadow-card border border-slate-100 space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="font-bold text-slate-900 text-base">Department Patient Volume & Wait Times</h3>
-            <span className="text-xs text-slate-400">Average minutes</span>
+      {!data && !error ? (
+        <div className="rounded-2xl bg-white p-8 text-center text-sm text-slate-500">No analytics data is available yet.</div>
+      ) : data ? (
+        <>
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <MetricCard icon={CalendarDays} title="Today's requests" value={analytics.totalToday} note={`${analytics.confirmed} confirmed`} color="text-primary" />
+            <MetricCard icon={Clock3} title="Awaiting confirmation" value={analytics.requested} note="Needs your review" color="text-amber-600" />
+            <MetricCard icon={Stethoscope} title="Registered doctors" value={analytics.doctorCount} note="Linked to this hospital" color="text-indigo-700" />
+            <MetricCard icon={BedDouble} title="Bed capacity" value={analytics.totalBeds ?? '—'} note={`${analytics.icuBeds ?? '—'} ICU beds`} color="text-emerald-700" />
+          </div>
+          <div className="flex items-start gap-2 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-xs leading-5 text-blue-900">
+            <Info className="mt-0.5 h-4 w-4 shrink-0" />
+            <span>Bed capacity reflects configured totals only. Bed occupancy and average wait time are unavailable because the system does not yet collect those measurements.</span>
           </div>
 
-          <div className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={deptData}>
-                <XAxis dataKey="name" fontSize={11} stroke="#94a3b8" />
-                <YAxis fontSize={11} stroke="#94a3b8" />
-                <Tooltip />
-                <Bar dataKey="appointments" fill="#1F2C8F" radius={[6, 6, 0, 0]} name="Appointments" />
-                <Bar dataKey="waitTimeAvg" fill="#0F766E" radius={[6, 6, 0, 0]} name="Avg Wait Time (min)" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Appointment Status Pie Chart */}
-        <div className="lg:col-span-4 bg-white p-6 rounded-2xl shadow-card border border-slate-100 space-y-4 flex flex-col justify-between">
-          <h3 className="font-bold text-slate-900 text-base">Queue Breakdown</h3>
-
-          <div className="h-48 w-full flex items-center justify-center">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={50}
-                  outerRadius={70}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {pieData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-
-          <div className="space-y-1 text-xs">
-            {pieData.map((item, i) => (
-              <div key={i} className="flex justify-between items-center text-slate-600">
-                <div className="flex items-center space-x-2">
-                  <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
-                  <span>{item.name}</span>
-                </div>
-                <span className="font-bold text-slate-900">{item.value}</span>
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
+            <section className="space-y-4 rounded-2xl border border-slate-100 bg-white p-5 shadow-card lg:col-span-8 sm:p-6">
+              <div>
+                <h2 className="font-bold text-slate-900">Today's requests by department</h2>
+                <p className="mt-1 text-xs text-slate-500">Counts include requests, confirmed visits, and cancellations recorded today.</p>
               </div>
-            ))}
-          </div>
-        </div>
-      </div>
+              {departmentData.length === 0 ? (
+                <EmptyChart message="Add departments in Departments & Services to start tracking activity." />
+              ) : (
+                <div className="h-72 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={departmentData} margin={{ top: 8, right: 8, left: -18, bottom: 28 }}>
+                      <XAxis dataKey="name" angle={-20} textAnchor="end" interval={0} height={55} fontSize={11} stroke="#94a3b8" />
+                      <YAxis allowDecimals={false} fontSize={11} stroke="#94a3b8" />
+                      <Tooltip />
+                      <Bar dataKey="appointments" fill="#1F2C8F" radius={[6, 6, 0, 0]} name="Appointment requests" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+            </section>
 
-      {/* Real-time Appointments Table */}
-      <div className="bg-white rounded-2xl p-6 shadow-card border border-slate-100 space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="font-bold text-slate-900 text-base">Today's Hospital Outpatient Queue</h3>
-            <p className="text-xs text-slate-500">Live check-in feed across all departments</p>
+            <section className="flex flex-col gap-3 rounded-2xl border border-slate-100 bg-white p-5 shadow-card lg:col-span-4 sm:p-6">
+              <div>
+                <h2 className="font-bold text-slate-900">Today's request status</h2>
+                <p className="mt-1 text-xs text-slate-500">Live status counts for your hospital.</p>
+              </div>
+              {chartStatuses.length === 0 ? (
+                <EmptyChart message="No appointment activity has been recorded today." />
+              ) : (
+                <>
+                  <div className="h-48 w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie data={chartStatuses} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={48} outerRadius={72} paddingAngle={4}>
+                          {chartStatuses.map((entry) => <Cell key={entry.name} fill={entry.color} />)}
+                        </Pie>
+                        <Tooltip />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="space-y-2 text-xs">
+                    {chartStatuses.map((item) => (
+                      <div key={item.name} className="flex items-center justify-between text-slate-600">
+                        <span className="flex items-center gap-2">
+                          <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+                          {item.name}
+                        </span>
+                        <strong className="text-slate-900">{item.value}</strong>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </section>
           </div>
-          <Link to="/hospital/appointments" className="text-xs font-semibold text-primary hover:underline">
-            View All →
-          </Link>
-        </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs">
-            <thead>
-              <tr className="bg-slate-50 text-slate-500 border-b border-slate-200 text-[11px] uppercase font-semibold">
-                <th className="p-3">Appointment #</th>
-                <th className="p-3">Patient Name</th>
-                <th className="p-3">Smart Card ID</th>
-                <th className="p-3">Specialist</th>
-                <th className="p-3">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {appointments.slice(0, 5).map((apt) => (
-                <tr key={apt._id} className="hover:bg-slate-50/50">
-                  <td className="p-3 font-mono font-bold text-primary">{apt.appointmentNumber}</td>
-                  <td className="p-3 font-semibold text-slate-800">{apt.patientName}</td>
-                  <td className="p-3 font-mono text-slate-500">{apt.smartCardId}</td>
-                  <td className="p-3 text-slate-700">{apt.doctorName || 'Dr. Specialist'}</td>
-                  <td className="p-3">
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-blue-100 text-blue-800">
-                      {apt.status.replace('_', ' ')}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+          <section className="space-y-4 rounded-2xl border border-slate-100 bg-white p-5 shadow-card sm:p-6">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="font-bold text-slate-900">Today's appointment activity</h2>
+                <p className="mt-1 text-xs text-slate-500">
+                  Updated {analytics.refreshedAt ? new Date(analytics.refreshedAt).toLocaleTimeString() : 'just now'} · refreshes every 15 seconds
+                </p>
+              </div>
+              <Link to="/hospital/appointments" className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline">
+                Manage requests <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
+            {analytics.appointments.length === 0 ? (
+              <p className="rounded-xl bg-slate-50 p-6 text-center text-sm text-slate-500">No appointments are recorded for today.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[620px] text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-slate-200 bg-slate-50 text-[10px] uppercase text-slate-500">
+                      <th className="p-3">Request #</th>
+                      <th className="p-3">Patient</th>
+                      <th className="p-3">Department</th>
+                      <th className="p-3">Preferred time</th>
+                      <th className="p-3">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {analytics.appointments.map((appointment) => (
+                      <tr key={appointment.id}>
+                        <td className="p-3 font-mono font-bold text-primary">{appointment.appointmentNumber}</td>
+                        <td className="p-3 font-semibold text-slate-800">{appointment.patientName}</td>
+                        <td className="p-3 text-slate-700">{appointment.department}</td>
+                        <td className="p-3 text-slate-600">{appointment.appointmentTime}</td>
+                        <td className="p-3">
+                          <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold text-slate-700">
+                            {statusLabel(appointment.status)}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
+        </>
+      ) : null}
+    </div>
+  );
+}
+
+function MetricCard({ icon: Icon, title, value, note, color }) {
+  return (
+    <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-card sm:p-5">
+      <span className="flex items-center gap-2 text-xs font-medium uppercase text-slate-400">
+        <Icon className={`h-4 w-4 ${color}`} /> {title}
+      </span>
+      <div className={`mt-2 text-2xl font-black sm:text-3xl ${color}`}>{value ?? 0}</div>
+      <span className="text-[11px] text-slate-500">{note}</span>
+    </div>
+  );
+}
+
+function EmptyChart({ message }) {
+  return (
+    <div className="flex h-56 items-center justify-center rounded-xl bg-slate-50 px-5 text-center text-sm text-slate-500">
+      {message}
     </div>
   );
 }
