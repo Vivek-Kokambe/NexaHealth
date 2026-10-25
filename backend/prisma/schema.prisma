@@ -26,6 +26,7 @@ model User {
   patient      Patient?
   doctor       Doctor?
   staff        Staff?
+  hospital     Hospital?
 
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -53,6 +54,7 @@ model Patient {
 
   user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   rfidScanEvents        RfidScanEvent[]
+  appointments          Appointment[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -123,6 +125,8 @@ enum UserRole {
   PATIENT
   DOCTOR
   STAFF
+  HOSPITAL
+  ADMIN
 }
 
 enum UserStatus {
@@ -171,6 +175,7 @@ enum RfidScanType {
 
 model Hospital {
   id                 String             @id @default(uuid())
+  userId             String?            @unique
   name               String
   registrationNumber String             @unique
   email              String             @unique
@@ -181,11 +186,19 @@ model Hospital {
   state              String
   pincode            String
 
+  hospitalType       String?
+  websiteUrl         String?
+  totalBeds          Int?
+  icuBeds            Int?
+  operatingHours     String?
+  facilities         String[]           @default([])
   verificationStatus VerificationStatus @default(PENDING)
 
+  user               User?              @relation(fields: [userId], references: [id], onDelete: Cascade)
   departments        Department[]
   doctors            Doctor[]
   staff              Staff[]
+  appointments       Appointment[]
 
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
@@ -204,6 +217,33 @@ model Department {
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model Appointment {
+  id                String            @id @default(uuid())
+  appointmentNumber String            @unique
+  patientId         String
+  hospitalId        String
+  department        String
+  appointmentDate   DateTime          @db.Date
+  appointmentTime   String
+  reason            String
+  status            AppointmentStatus @default(REQUESTED)
+
+  patient           Patient           @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  hospital          Hospital          @relation(fields: [hospitalId], references: [id], onDelete: Restrict)
+
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  @@index([patientId, appointmentDate])
+  @@index([hospitalId, appointmentDate])
+}
+
+enum AppointmentStatus {
+  REQUESTED
+  CONFIRMED
+  CANCELLED
 }
 
 

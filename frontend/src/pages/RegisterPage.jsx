@@ -160,7 +160,7 @@ export default function RegisterPage() {
 
         <button
           type="button"
-          onClick={() => setRole('hospital')}
+          onClick={() => navigate('/hospital/register')}
           className={`py-2.5 text-xs font-bold rounded-xl transition flex items-center justify-center space-x-1.5 ${
             role === 'hospital' ? 'bg-white text-primary shadow-sm' : 'text-slate-600 hover:text-slate-900'
           }`}

@@ -11,7 +11,10 @@ const formatBloodGroup = (bloodGroup) => bloodGroup
 
 const serializeUser = (user) => {
   const patient = user.patient;
-  const name = patient ? `${patient.firstName} ${patient.lastName}` : null;
+  const hospital = user.hospital;
+  const name = patient
+    ? `${patient.firstName} ${patient.lastName}`
+    : hospital?.name || null;
 
   return {
     id: user.id,
@@ -31,7 +34,8 @@ const serializeUser = (user) => {
           phone: patient.emergencyContactPhone
         }
       }
-    })
+    }),
+    ...(hospital && { hospital })
   };
 };
 
@@ -74,7 +78,7 @@ const getCurrentUser = async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.user.userId },
-      include: { patient: true }
+      include: { patient: true, hospital: { include: { departments: true } } }
     });
 
     if (!user) return res.status(404).json({ message: "User not found" });
@@ -388,7 +392,7 @@ const loginUser = async (req, res) => {
     const normalizedEmail = email.trim().toLowerCase();
     const user = await prisma.user.findUnique({
       where: { email: normalizedEmail },
-      include: { patient: true }
+      include: { patient: true, hospital: { include: { departments: true } } }
     });
 
     if (!user) {

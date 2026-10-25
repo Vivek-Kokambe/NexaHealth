@@ -117,17 +117,13 @@ export default function LoginPage() {
               </div>
             </button>
 
-            <button
-              type="button"
-              onClick={() => handleQuickDemo('admin')}
-              className="flex items-center space-x-2 p-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-900 text-xs font-semibold transition text-left border border-rose-200/60"
-            >
+            <div className="flex items-center space-x-2 p-2 rounded-xl bg-rose-50 text-rose-900 text-xs font-semibold border border-rose-200/60">
               <Shield className="w-4 h-4 text-rose-600 flex-shrink-0" />
               <div className="truncate">
                 <span className="block text-[10px] text-slate-500">System Admin</span>
-                <span>Dr. Rajesh Mehta</span>
+                <span>Use provisioned credentials</span>
               </div>
-            </button>
+            </div>
           </div>
         </div>
 

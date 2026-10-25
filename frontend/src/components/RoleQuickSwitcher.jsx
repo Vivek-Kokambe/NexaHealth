@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { UserCheck, Shield, Stethoscope, Building2, User, ChevronUp, ChevronDown } from 'lucide-react';
+import { Stethoscope, Building2, User, ChevronUp, ChevronDown } from 'lucide-react';
 
 export default function RoleQuickSwitcher() {
   const { user, quickDemoLogin } = useAuth();
@@ -30,13 +30,6 @@ export default function RoleQuickSwitcher() {
       icon: <Building2 className="w-3.5 h-3.5" />,
       color: 'bg-indigo-600',
       path: '/hospital/dashboard',
-    },
-    {
-      id: 'admin',
-      label: 'Admin (Dr. Mehta)',
-      icon: <Shield className="w-3.5 h-3.5" />,
-      color: 'bg-rose-600',
-      path: '/admin/dashboard',
     },
   ];
 
@@ -74,7 +67,7 @@ export default function RoleQuickSwitcher() {
         {/* Dropdown Options */}
         {isOpen && (
           <div className="p-3 border-t border-slate-800 space-y-1.5 bg-slate-950/90 w-56">
-            <p className="text-[10px] text-slate-400 mb-2">Switch instantly between pre-configured prototype personas:</p>
+            <p className="text-[10px] text-slate-400 mb-2">Switch between available demo personas:</p>
             {roles.map((r) => {
               const isActive = user?.role === r.id;
               return (

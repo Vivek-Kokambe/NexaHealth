@@ -7,7 +7,7 @@ NexaHealth is a healthcare web application prototype with a React frontend and a
 - `frontend/` — React, Vite, and Tailwind CSS application.
 - `backend/` — Express API, Prisma schema and migrations, and RFID device demos.
 
-The API currently provides patient registration with email OTP verification, login, session/profile lookup, patient smart-card lookup, and RFID endpoints. Some frontend screens represent functionality that is not yet implemented by this API.
+The API provides patient registration with email OTP verification, login, session/profile lookup, patient smart-card lookup, RFID endpoints, hospital registration and review, hospital profile management, and patient-to-hospital appointment requests. Other frontend screens may represent functionality that is not yet implemented by this API.
 
 ## Run locally
 
@@ -32,6 +32,8 @@ Prerequisites: Node.js and npm, plus an active Supabase project.
 
    The API listens on `http://localhost:5001` by default. Prisma migrations are in `backend/prisma/migrations`; apply them to the configured database with `npx prisma migrate deploy` from `backend` when setting up a database.
 
+   To provision an administrator, set `ADMIN_EMAIL` and a unique `ADMIN_PASSWORD` of at least 12 characters in `backend/.env`, then run `npm run create:admin` from `backend`.
+
 3. Start the frontend in another terminal:
 
    ```powershell
@@ -41,6 +43,20 @@ Prerequisites: Node.js and npm, plus an active Supabase project.
    ```
 
    Open `http://localhost:5173`. Vite proxies `/api` requests to `http://localhost:5001`; set `NEXAHEALTH_API_URL` in the frontend environment to use a different local API URL.
+
+## Hospital registration and appointments
+
+Hospitals can apply at `/hospital/register`. Applications are pending until an administrator reviews them. The hospital portal supports department and facility updates, bed-capacity settings, appointment-request review, and dashboard counts. Patients can request an appointment with an approved hospital; the requested date and time are preferences until the hospital confirms the request.
+
+The related API routes are:
+
+- `POST /api/hospitals/register/request` and `POST /api/hospitals/register/verify` — verify an email and submit a hospital application.
+- `GET /api/admin/hospitals` and `PATCH /api/admin/hospitals/:hospitalId/review` — administrator review of hospital applications.
+- `GET /api/hospitals/me`, `GET /api/hospitals/me/analytics`, and `PATCH /api/hospitals/me/services` — current hospital profile, dashboard data, and service settings.
+- `POST /api/appointments`, `GET /api/patients/appointments`, and `DELETE /api/appointments/:appointmentId` — patient appointment requests.
+- `GET /api/hospitals/appointments` and `PATCH /api/hospitals/appointments/:appointmentId` — hospital appointment management.
+
+Apply the migrations in `backend/prisma/migrations` before using these endpoints. Bed fields represent capacity; occupancy and average wait-time metrics are not collected by the current database.
 
 ## Deploy to Vercel
 
