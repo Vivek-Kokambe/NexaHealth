@@ -20,6 +20,7 @@ import TermsPage from './pages/TermsPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import HospitalRegistrationPage from './pages/hospital/HospitalRegistrationPage';
+import PatientCardLookupPage from './pages/PatientCardLookupPage';
 
 // Patient Pages
 import PatientDashboard from './pages/patient/PatientDashboard';
@@ -71,6 +72,10 @@ export default function App() {
         <Route path="login" element={<LoginPage />} />
         <Route path="register" element={<RegisterPage />} />
         <Route path="hospital/register" element={<HospitalRegistrationPage />} />
+      </Route>
+
+      <Route path="/lookup" element={<DashboardLayout allowedRoles={['doctor', 'hospital', 'staff', 'admin']} />}>
+        <Route index element={<PatientCardLookupPage />} />
       </Route>
 
       {/* Patient Portal Routes */}

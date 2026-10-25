@@ -6,12 +6,14 @@ const {
 	startRfidPairing,
 	getRfidStatus,
 	getRfidScans,
-	receivePatientRfidScan
+	receivePatientRfidScan,
+	lookupPatientInfo
 } = require("../controllers/rfidController");
 const { authenticate } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
+router.post("/lookup", authenticate, lookupPatientInfo);
 router.get("/smart-card", authenticate, getPatientSmartCard);
 router.get("/appointments", authenticate, listPatientAppointments);
 router.post("/rfid/pairing", authenticate, startRfidPairing);

@@ -7,7 +7,7 @@ NexaHealth is a healthcare web application prototype with a React frontend and a
 - `frontend/` — React, Vite, and Tailwind CSS application.
 - `backend/` — Express API, Prisma schema and migrations, and RFID device demos.
 
-The API provides patient registration with email OTP verification, login, session/profile lookup, patient smart-card lookup, RFID endpoints, hospital registration and review, hospital profile management, and patient-to-hospital appointment requests. Other frontend screens may represent functionality that is not yet implemented by this API.
+The API provides patient registration with email OTP verification, login, session/profile lookup, patient smart-card lookup, RFID pairing, staff-only patient card lookup, hospital registration and review, hospital profile management, and patient-to-hospital appointment requests. Other frontend screens may represent functionality that is not yet implemented by this API.
 
 ## Run locally
 
@@ -73,6 +73,9 @@ Do not commit `.env` files or production credentials. Configure the frontend API
 
 ## Notes
 
+- Patient card lookup is restricted by the backend to authenticated doctor, hospital/staff, and admin accounts. RFID, QR, and manual Smart Card lookups are logged in `PatientInfoAccessLog`.
+- Apply the new patient information access-log migration with `npx prisma migrate deploy` from `backend` before using the lookup feature.
 - The frontend contains pages for product areas whose API routes are not all present in the current backend; those areas need backend implementation before they can work end-to-end.
-- `backend/esp32-rfid-demo/` contains firmware examples for RFID hardware.
+- `backend/esp32-rfid-demo/` contains RFID firmware and [ESP32 + RC522 setup instructions](./backend/esp32-rfid-demo/README.md).
+- RFID cards are identified by their UID only; UIDs can be cloned and must not be used alone to authorize access to medical records.
 - This is a student project prototype, not a certified medical system or a substitute for professional medical advice.

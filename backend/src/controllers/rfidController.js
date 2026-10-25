@@ -1,6 +1,93 @@
 const prisma = require("../config/prisma");
 
 const normalizeUid = (uid) => String(uid || "").replace(/[^0-9a-f]/gi, "").toUpperCase();
+const formatBloodGroup = (bloodGroup) => bloodGroup
+  ? bloodGroup.replace("_POSITIVE", "+").replace("_NEGATIVE", "-")
+  : null;
+
+const lookupPatientInfo = async (req, res) => {
+  const allowedRoles = ["DOCTOR", "HOSPITAL", "STAFF", "ADMIN"];
+  if (!allowedRoles.includes(req.user?.role)) {
+    return res.status(403).json({ message: "Healthcare staff access is required" });
+  }
+
+  const { uid, qrValue, smartCardId } = req.body || {};
+  let method;
+  let patientWhere;
+
+  if (typeof uid === "string") {
+    const normalizedUid = normalizeUid(uid);
+    if (!/^(?:[0-9A-F]{2}){4,10}$/.test(normalizedUid)) {
+      return res.status(400).json({ message: "A valid RFID UID is required" });
+    }
+    method = "RFID";
+    patientWhere = { rfidUid: normalizedUid };
+  } else if (typeof qrValue === "string") {
+    const match = qrValue.trim().match(/^SMARTCARE:\/\/(SCN-\d{4}-\d{6})$/i);
+    if (!match) {
+      return res.status(400).json({ message: "This QR code is not a valid NexaHealth Smart Card" });
+    }
+    method = "QR";
+    patientWhere = { smartCardId: match[1].toUpperCase() };
+  } else if (typeof smartCardId === "string") {
+    const normalizedSmartCardId = smartCardId.trim().toUpperCase();
+    if (!/^SCN-\d{4}-\d{6}$/.test(normalizedSmartCardId)) {
+      return res.status(400).json({ message: "A valid Smart Card ID is required" });
+    }
+    method = "MANUAL";
+    patientWhere = { smartCardId: normalizedSmartCardId };
+  } else {
+    return res.status(400).json({ message: "Scan an RFID card, scan a Smart Card QR, or enter a Smart Card ID" });
+  }
+
+  try {
+    const accessingUser = await prisma.user.findUnique({
+      where: { id: req.user.userId },
+      select: { role: true, status: true }
+    });
+
+    if (!accessingUser || accessingUser.status !== "ACTIVE" || !allowedRoles.includes(accessingUser.role)) {
+      return res.status(403).json({ message: "Healthcare staff access is required" });
+    }
+
+    const patient = await prisma.patient.findFirst({
+      where: patientWhere,
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        dateOfBirth: true,
+        bloodGroup: true,
+        allergies: true,
+        user: { select: { status: true } }
+      }
+    });
+
+    if (!patient || patient.user.status !== "ACTIVE") {
+      return res.status(404).json({ message: "No active patient found for this card" });
+    }
+
+    await prisma.patientInfoAccessLog.create({
+      data: {
+        patientId: patient.id,
+        accessedByUserId: req.user.userId,
+        method
+      }
+    });
+
+    return res.json({
+      patient: {
+        name: `${patient.firstName} ${patient.lastName}`,
+        dateOfBirth: patient.dateOfBirth,
+        bloodGroup: formatBloodGroup(patient.bloodGroup),
+        allergies: patient.allergies
+      }
+    });
+  } catch (error) {
+    console.error("Patient information lookup error:", error);
+    return res.status(500).json({ message: "Could not look up patient information" });
+  }
+};
 
 const startRfidPairing = async (req, res) => {
   try {
@@ -191,6 +278,7 @@ const receivePatientRfidScan = async (req, res) => {
 };
 
 module.exports = {
+  lookupPatientInfo,
   startRfidPairing,
   getRfidStatus,
   getRfidScans,
