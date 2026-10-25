@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { Shield, Copy, Check, Printer, AlertTriangle, CreditCard, Activity, Wifi, Radio } from 'lucide-react';
 
-export default function SmartCardWidget({ cardData, onReportLost, onConnectPhysicalReader, readerConnected, onAttachPhysicalCard, rfidAttached, rfidPairing }) {
+export default function SmartCardWidget({ cardData, onReportLost, onConnectPhysicalReader, readerConnected, readerConnecting, onAttachPhysicalCard, rfidAttached, rfidPairing }) {
   const [copied, setCopied] = useState(false);
   const [showQrModal, setShowQrModal] = useState(false);
 
@@ -135,11 +135,11 @@ export default function SmartCardWidget({ cardData, onReportLost, onConnectPhysi
           <button
             type="button"
             onClick={onConnectPhysicalReader}
-            disabled={readerConnected}
+            disabled={readerConnected || readerConnecting}
             className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white rounded-lg border border-slate-200 shadow-sm hover:bg-slate-50 transition disabled:cursor-not-allowed disabled:opacity-70"
           >
             <Radio className="w-3.5 h-3.5" />
-            <span>{readerConnected ? 'USB Reader Connected' : 'Connect USB Reader'}</span>
+            <span>{readerConnected ? 'USB Reader Connected' : readerConnecting ? 'Connecting...' : 'Connect USB Reader'}</span>
           </button>
         )}
         {onAttachPhysicalCard && (

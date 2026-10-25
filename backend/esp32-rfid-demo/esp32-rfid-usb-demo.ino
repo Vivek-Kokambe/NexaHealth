@@ -9,6 +9,7 @@ constexpr unsigned long CARD_RELEASE_DELAY_MS = 1000;
 MFRC522 reader(RFID_SS_PIN, RFID_RST_PIN);
 String lastUid;
 unsigned long lastCardSeenAt = 0;
+bool readerReady = false;
 
 String readUid() {
   String uid;
@@ -33,10 +34,24 @@ void setup() {
 
   SPI.begin(18, 19, 23, RFID_SS_PIN);
   reader.PCD_Init();
+  delay(50);
+
+  const byte version = reader.PCD_ReadRegister(MFRC522::VersionReg);
+  if (version == 0x00 || version == 0xFF) {
+    Serial.println("RFID_ERROR: RC522 not responding; check power and SPI wiring");
+    return;
+  }
+
+  readerReady = true;
   Serial.println("RFID_READY");
 }
 
 void loop() {
+  if (!readerReady) {
+    delay(1000);
+    return;
+  }
+
   if (reader.PICC_IsNewCardPresent() && reader.PICC_ReadCardSerial()) {
     const String uid = readUid();
     lastCardSeenAt = millis();

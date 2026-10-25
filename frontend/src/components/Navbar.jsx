@@ -12,7 +12,8 @@ import {
   LayoutDashboard,
   Building2,
   Stethoscope,
-  ChevronDown
+  ChevronDown,
+  Search
 } from 'lucide-react';
 
 export default function Navbar() {
@@ -39,6 +40,7 @@ export default function Navbar() {
     setUserDropdownOpen(false);
   };
 
+  const canLookupPatients = ['doctor', 'hospital', 'staff', 'admin'].includes(user?.role);
   const navLinks = [
     { name: 'Home', path: '/' },
     { name: 'Hospitals', path: '/hospitals' },
@@ -93,6 +95,16 @@ export default function Navbar() {
           <div className="flex items-center space-x-3">
             {isAuthenticated ? (
               <>
+                {canLookupPatients && (
+                  <Link
+                    to="/lookup"
+                    title="Patient Card Lookup"
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 px-2.5 py-2 text-xs font-semibold text-primary transition hover:bg-blue-100 sm:px-3"
+                  >
+                    <Search className="h-4 w-4" />
+                    <span className="hidden xl:inline">Patient Lookup</span>
+                  </Link>
+                )}
                 <NotificationDropdown />
 
                 {/* User Dropdown */}
@@ -197,6 +209,15 @@ export default function Navbar() {
           ))}
           {isAuthenticated ? (
             <div className="pt-2 border-t border-slate-100">
+              {canLookupPatients && (
+                <Link
+                  to="/lookup"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="mb-2 block rounded-lg px-3 py-2 text-sm font-bold text-primary hover:bg-blue-50"
+                >
+                  Patient Card Lookup
+                </Link>
+              )}
               <Link
                 to={getDashboardPath()}
                 onClick={() => setMobileMenuOpen(false)}

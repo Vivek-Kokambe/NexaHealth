@@ -19,6 +19,8 @@ import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import TermsPage from './pages/TermsPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import HospitalRegistrationPage from './pages/hospital/HospitalRegistrationPage';
+import PatientCardLookupPage from './pages/PatientCardLookupPage';
 
 // Patient Pages
 import PatientDashboard from './pages/patient/PatientDashboard';
@@ -41,6 +43,7 @@ import DoctorSchedulePage from './pages/doctor/DoctorSchedulePage';
 import HospitalDashboard from './pages/hospital/HospitalDashboard';
 import HospitalDoctorsPage from './pages/hospital/HospitalDoctorsPage';
 import HospitalAppointmentsPage from './pages/hospital/HospitalAppointmentsPage';
+import HospitalDepartmentsPage from './pages/hospital/HospitalDepartmentsPage';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -68,6 +71,11 @@ export default function App() {
         <Route path="terms" element={<TermsPage />} />
         <Route path="login" element={<LoginPage />} />
         <Route path="register" element={<RegisterPage />} />
+        <Route path="hospital/register" element={<HospitalRegistrationPage />} />
+      </Route>
+
+      <Route path="/lookup" element={<DashboardLayout allowedRoles={['doctor', 'hospital', 'staff', 'admin']} />}>
+        <Route index element={<PatientCardLookupPage />} />
       </Route>
 
       {/* Patient Portal Routes */}
@@ -105,7 +113,7 @@ export default function App() {
         <Route path="appointments" element={<HospitalAppointmentsPage />} />
         <Route path="patients" element={<HospitalAppointmentsPage />} />
         <Route path="analytics" element={<HospitalDashboard />} />
-        <Route path="departments" element={<HospitalDashboard />} />
+        <Route path="departments" element={<HospitalDepartmentsPage />} />
       </Route>
 
       {/* Admin Portal Routes */}
