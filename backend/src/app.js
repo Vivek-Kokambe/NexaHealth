@@ -7,7 +7,6 @@ const appointmentRoutes = require("./routes/appointmentRoutes");
 const hospitalRegistrationRoutes = require("./routes/hospitalRegistrationRoutes");
 const patientRoutes = require("./routes/patientRoutes");
 const rfidRoutes = require("./routes/rfidRoutes");
-const adminRoutes = require("./routes/adminRoutes");
 
 const app = express();
 
@@ -26,6 +25,5 @@ app.use("/api/appointments", appointmentRoutes);
 app.use("/api/hospitals", hospitalRegistrationRoutes);
 app.use("/api/patients", patientRoutes);
 app.use("/api/rfid", rfidRoutes);
-app.use("/api/admin", adminRoutes);
 
 module.exports = app;
